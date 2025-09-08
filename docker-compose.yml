@@ -1,0 +1,252 @@
+version: '3.8'
+
+services:
+  # Database
+  postgres:
+    image: timescale/timescaledb:latest-pg14
+    container_name: usage_postgres
+    environment:
+      POSTGRES_DB: usage_tracking
+      POSTGRES_USER: usage_user
+      POSTGRES_PASSWORD: usage_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-timescale.sql:/docker-entrypoint-initdb.d/01-init-timescale.sql
+    networks:
+      - usage_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usage_user -d usage_tracking"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: usage_redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - usage_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # API Gateway
+  api_gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.api_gateway
+    container_name: usage_api_gateway
+    environment:
+      DATABASE_URL: postgresql+asyncpg://usage_user:usage_password@postgres:5432/usage_tracking
+      REDIS_URL: redis://redis:6379
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+      LOG_LEVEL: INFO
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - usage_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Event Processor
+  event_processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.event_processor
+    container_name: usage_event_processor
+    environment:
+      DATABASE_URL: postgresql+asyncpg://usage_user:usage_password@postgres:5432/usage_tracking
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - usage_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Query Service
+  query_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.query_service
+    container_name: usage_query_service
+    environment:
+      DATABASE_URL: postgresql+asyncpg://usage_user:usage_password@postgres:5432/usage_tracking
+      REDIS_URL: redis://redis:6379
+      API_HOST: 0.0.0.0
+      API_PORT: 8002
+      LOG_LEVEL: INFO
+    ports:
+      - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - usage_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Aggregation Service
+  aggregation_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.aggregation_service
+    container_name: usage_aggregation_service
+    environment:
+      DATABASE_URL: postgresql+asyncpg://usage_user:usage_password@postgres:5432/usage_tracking
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - usage_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Database Migration
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.api_gateway
+    container_name: usage_migrate
+    environment:
+      DATABASE_URL: postgresql+asyncpg://usage_user:usage_password@postgres:5432/usage_tracking
+    command: ["python", "-m", "alembic", "upgrade", "head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - usage_network
+    restart: "no"
+
+  # Nginx Load Balancer (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: usage_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api_gateway
+      - query_service
+    networks:
+      - usage_network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: usage_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - usage_network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Grafana Dashboard (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: usage_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - usage_network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  usage_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

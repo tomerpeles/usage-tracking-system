@@ -1,0 +1,46 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Usage Tracking Services
+  - job_name: 'usage-api-gateway'
+    static_configs:
+      - targets: ['api_gateway:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    
+  - job_name: 'usage-query-service'
+    static_configs:
+      - targets: ['query_service:8002']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    
+  # Database monitoring
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+    
+  # Redis monitoring
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # System monitoring (if node_exporter is added)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 60s
