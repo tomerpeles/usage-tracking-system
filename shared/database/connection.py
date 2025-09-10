@@ -86,10 +86,9 @@ db_manager = DatabaseManager()
 
 
 # Convenience functions
-async def get_session() -> AsyncGenerator[AsyncSession, None]:
+def get_session():
     """Get a database session - convenience function"""
-    async with db_manager.get_session() as session:
-        yield session
+    return db_manager.get_session()
 
 
 def get_engine() -> AsyncEngine:
