@@ -21,10 +21,10 @@ def run_command(cmd: list, env: dict = None) -> int:
         result = subprocess.run(cmd, env=env, check=False)
         return result.returncode
     except KeyboardInterrupt:
-        print("\n🛑 Interrupted by user")
+        print("\nInterrupted by user")
         return 130
     except Exception as e:
-        print(f"❌ Error running command: {e}")
+        print(f"Error running command: {e}")
         return 1
 
 
@@ -39,7 +39,7 @@ def setup_logging(level: str = "INFO"):
 
 async def run_api_gateway():
     """Run the API Gateway service"""
-    print("🚀 Starting API Gateway...")
+    print("Starting API Gateway...")
     setup_logging()
     
     from services.api_gateway.main import app
@@ -236,10 +236,10 @@ def main():
             asyncio.run(async_commands[args.command]())
             return 0
         except KeyboardInterrupt:
-            print("\n🛑 Service stopped by user")
+            print("\nService stopped by user")
             return 0
         except Exception as e:
-            print(f"❌ Error: {e}")
+            print(f"Error: {e}")
             return 1
     
     # Handle sync commands
@@ -259,7 +259,7 @@ def main():
     if args.command == "docker-up":
         return run_docker_up(args.profile)
     
-    print(f"❌ Unknown command: {args.command}")
+    print(f"Unknown command: {args.command}")
     return 1
 
 

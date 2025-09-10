@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from shared.models.enums import ServiceType
 
 
@@ -17,6 +17,8 @@ class EventMetadata(BaseModel):
 
 class LLMEventData(BaseModel):
     """Validation model for LLM service events"""
+    model_config = ConfigDict(protected_namespaces=())
+    
     event_id: uuid.UUID = Field(default_factory=uuid.uuid4)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     tenant_id: str = Field(min_length=1, max_length=255)
@@ -43,10 +45,14 @@ class LLMEventData(BaseModel):
     session_id: Optional[str] = None
     request_id: Optional[str] = None
     
-    @validator("total_tokens", always=True)
-    def calculate_total_tokens(cls, v, values):
-        if v is None and "input_tokens" in values and "output_tokens" in values:
-            return values["input_tokens"] + values["output_tokens"]
+    @field_validator("total_tokens", mode="before")
+    @classmethod
+    def calculate_total_tokens(cls, v, info):
+        if v is None:
+            # Get values from the data being validated
+            data = info.data if hasattr(info, 'data') else {}
+            if "input_tokens" in data and "output_tokens" in data:
+                return data["input_tokens"] + data["output_tokens"]
         return v
     
     def to_event_dict(self) -> Dict[str, Any]:
@@ -192,9 +198,10 @@ class APIEventData(BaseModel):
 
 class BatchEventData(BaseModel):
     """Validation model for batch event submission"""
-    events: List[Dict[str, Any]] = Field(min_items=1, max_items=1000)
+    events: List[Dict[str, Any]] = Field(min_length=1, max_length=1000)
     
-    @validator("events")
+    @field_validator("events")
+    @classmethod
     def validate_events(cls, v):
         validated_events = []
         for event_data in v:

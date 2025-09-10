@@ -47,7 +47,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             
             return JSONResponse(
                 status_code=429,
-                content=response_data.dict(),
+                content=response_data.model_dump(),
                 headers={
                     "X-RateLimit-Limit": str(self.rate_limit),
                     "X-RateLimit-Remaining": "0",
@@ -235,7 +235,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             
             return JSONResponse(
                 status_code=500,
-                content=error_response.dict()
+                content=error_response.model_dump()
             )
 
 

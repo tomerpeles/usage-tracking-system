@@ -224,10 +224,16 @@ async def get_usage(
     end_date: Optional[datetime] = None,
     service_type: Optional[ServiceType] = None,
     user_id: Optional[str] = None,
-    limit: int = Field(default=1000, le=10000),
-    offset: int = Field(default=0, ge=0)
+    limit: int = 1000,
+    offset: int = 0
 ) -> UsageResponse:
     """Query usage data with filters"""
+    
+    # Validate query parameters
+    if limit <= 0 or limit > 10000:
+        raise HTTPException(status_code=400, detail="Limit must be between 1 and 10000")
+    if offset < 0:
+        raise HTTPException(status_code=400, detail="Offset must be >= 0")
     
     try:
         async with get_session() as session:
