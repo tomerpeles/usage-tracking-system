@@ -42,7 +42,7 @@ The system follows a microservices architecture with the following components:
 
 1. **Clone and Setup**
 ```bash
-git clone <repository-url>
+git clone https://github.com/tomerpeles/usage-tracking-system.git
 cd UsageSystem
 cp .env.example .env
 ```
