@@ -7,7 +7,7 @@ from sqlalchemy import and_, func, select, text
 from sqlalchemy.dialects.postgresql import insert
 
 from config import settings
-from shared.database import get_session, UsageEventRepository, UsageAggregateRepository, BillingSummaryRepository
+from shared.database import get_session, UsageEventRepository, UsageAggregateRepository
 from shared.models import UsageEvent, UsageAggregate, BillingSummary
 from shared.models.enums import ServiceType, EventStatus, AggregationPeriod
 from shared.utils import setup_logging, get_logger
