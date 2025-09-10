@@ -115,8 +115,8 @@ def upgrade() -> None:
     sa.Column('total_cost', sa.DECIMAL(precision=10, scale=6), nullable=True),
     sa.Column('session_id', sa.String(length=255), nullable=True),
     sa.Column('request_id', sa.String(length=255), nullable=True),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('event_id')
+    sa.PrimaryKeyConstraint('id', 'timestamp'),
+    sa.UniqueConstraint('event_id', 'timestamp')
     )
     
     # Create indexes for usage_events

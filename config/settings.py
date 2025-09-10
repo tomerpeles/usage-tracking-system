@@ -4,6 +4,13 @@ from typing import Optional
 
 
 class DatabaseSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"
+    )
+    
     host: str = Field(default="localhost", alias="DATABASE_HOST")
     port: int = Field(default=5432, alias="DATABASE_PORT")
     name: str = Field(default="usage_tracking", alias="DATABASE_NAME")
@@ -19,6 +26,13 @@ class DatabaseSettings(BaseSettings):
 
 
 class RedisSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore"
+    )
+    
     host: str = Field(default="localhost", alias="REDIS_HOST")
     port: int = Field(default=6379, alias="REDIS_PORT")
     db: int = Field(default=0, alias="REDIS_DB")
