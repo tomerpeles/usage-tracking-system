@@ -37,7 +37,7 @@ def setup_logging(level: str = "INFO"):
     )
 
 
-async def run_api_gateway():
+def run_api_gateway():
     """Run the API Gateway service"""
     print("Starting API Gateway...")
     setup_logging()
@@ -50,7 +50,7 @@ async def run_api_gateway():
         host="0.0.0.0",
         port=8000,
         log_level="info",
-        reload=True
+        reload=False
     )
 
 
@@ -76,7 +76,7 @@ async def run_query_service():
         host="0.0.0.0",
         port=8002,
         log_level="info",
-        reload=True
+        reload=False
     )
 
 
@@ -225,7 +225,6 @@ def main():
     
     # Handle async commands
     async_commands = {
-        "api-gateway": run_api_gateway,
         "event-processor": run_event_processor,
         "query-service": run_query_service,
         "aggregation-service": run_aggregation_service,
@@ -244,6 +243,7 @@ def main():
     
     # Handle sync commands
     sync_commands = {
+        "api-gateway": run_api_gateway,
         "migrate": run_migrations,
         "test": run_tests,
         "lint": run_linting,
