@@ -343,7 +343,7 @@ async def get_cost_analysis(
     tenant_id: str,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
-    group_by: str = Query(default="day", regex="^(hour|day|week|month)$")
+    group_by: str = Query(default="day", pattern="^(hour|day|week|month)$")
 ) -> CostAnalysisResponse:
     """Get cost analysis and breakdown"""
     
@@ -465,7 +465,7 @@ async def get_cost_analysis(
 @app.get("/api/v1/analytics/trends", response_model=TrendAnalysisResponse)
 async def get_trend_analysis(
     tenant_id: str,
-    metric: str = Query(default="event_count", regex="^(event_count|total_cost|unique_users)$"),
+    metric: str = Query(default="event_count", pattern="^(event_count|total_cost|unique_users)$"),
     period: AggregationPeriod = AggregationPeriod.DAY,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,

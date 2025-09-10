@@ -154,7 +154,7 @@ class HealthMetricsResponse(BaseModel):
 class ExportRequest(BaseModel):
     """Request model for data export"""
     tenant_id: str
-    format: str = Field(default="csv", regex="^(csv|json|parquet)$")
+    format: str = Field(default="csv", pattern="^(csv|json|parquet)$")
     start_date: datetime
     end_date: datetime
     service_type: Optional[ServiceType] = None
