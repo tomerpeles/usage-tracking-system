@@ -45,15 +45,11 @@ class TestAPIGateway:
             "service_type": "llm_service",
             "service_provider": "openai",
             "event_type": "completion",
-            "metadata": {
-                "model": "gpt-4",
-                "temperature": 0.7
-            },
-            "metrics": {
-                "input_tokens": 100,
-                "output_tokens": 50,
-                "total_tokens": 150
-            }
+            "model": "gpt-4",
+            "temperature": 0.7,
+            "input_tokens": 100,
+            "output_tokens": 50,
+            "total_tokens": 150
         }
         
         response = client.post(
@@ -108,8 +104,10 @@ class TestAPIGateway:
         """Test successful batch event creation"""
         
         # Mock Redis
-        mock_redis.pipeline.return_value.lpush = AsyncMock()
-        mock_redis.pipeline.return_value.execute = AsyncMock()
+        mock_pipeline = MagicMock()
+        mock_pipeline.lpush = MagicMock()
+        mock_pipeline.execute = AsyncMock()
+        mock_redis.pipeline = MagicMock(return_value=mock_pipeline)
         
         batch_data = {
             "events": [
@@ -119,7 +117,9 @@ class TestAPIGateway:
                     "service_type": "llm_service",
                     "service_provider": "openai",
                     "event_type": "completion",
-                    "metrics": {"input_tokens": 100, "output_tokens": 50}
+                    "model": "gpt-4",
+                    "input_tokens": 100,
+                    "output_tokens": 50
                 },
                 {
                     "tenant_id": "test-tenant", 
@@ -127,7 +127,9 @@ class TestAPIGateway:
                     "service_type": "api_service",
                     "service_provider": "payment_api",
                     "event_type": "request",
-                    "metrics": {"request_count": 1}
+                    "endpoint": "/payment",
+                    "method": "POST",
+                    "request_count": 1
                 }
             ]
         }

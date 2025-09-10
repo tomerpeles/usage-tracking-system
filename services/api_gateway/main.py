@@ -121,7 +121,7 @@ async def create_event(
         
         # Add request metadata
         validated_event["request_id"] = str(uuid.uuid4())
-        validated_event["metadata_"]["client_ip"] = request.client.host
+        validated_event["metadata_"]["client_ip"] = request.client.host if request.client else None
         validated_event["metadata_"]["user_agent"] = request.headers.get("user-agent")
         
         # Queue event for processing
@@ -177,7 +177,7 @@ async def create_events_batch(
             
             # Add request metadata
             validated_event["request_id"] = str(uuid.uuid4())
-            validated_event["metadata_"]["client_ip"] = request.client.host
+            validated_event["metadata_"]["client_ip"] = request.client.host if request.client else None
             validated_event["metadata_"]["user_agent"] = request.headers.get("user-agent")
             validated_event["metadata_"]["batch_index"] = i
             
