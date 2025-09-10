@@ -56,16 +56,16 @@ def run_api_gateway():
 
 async def run_event_processor():
     """Run the Event Processor service"""
-    print("⚡ Starting Event Processor...")
+    print("Starting Event Processor...")
     setup_logging()
     
     from services.event_processor.main import main
     await main()
 
 
-async def run_query_service():
+def run_query_service():
     """Run the Query Service"""
-    print("🔍 Starting Query Service...")
+    print("Starting Query Service...")
     setup_logging()
     
     from services.query_service.main import app
@@ -82,7 +82,7 @@ async def run_query_service():
 
 async def run_aggregation_service():
     """Run the Aggregation Service"""
-    print("📊 Starting Aggregation Service...")
+    print("Starting Aggregation Service...")
     setup_logging()
     
     from services.aggregation_service.main import main
@@ -91,13 +91,13 @@ async def run_aggregation_service():
 
 def run_migrations():
     """Run database migrations"""
-    print("🗄️  Running database migrations...")
+    print("Running database migrations...")
     return run_command(["python", "-m", "alembic", "upgrade", "head"])
 
 
 def run_tests():
     """Run the test suite"""
-    print("🧪 Running tests...")
+    print("Running tests...")
     return run_command([
         "python", "-m", "pytest", 
         "tests/", 
@@ -110,7 +110,7 @@ def run_tests():
 
 def run_linting():
     """Run code linting"""
-    print("🔍 Running linting...")
+    print("Running linting...")
     
     print("Running flake8...")
     flake8_result = run_command(["python", "-m", "flake8", "services/", "shared/"])
@@ -129,7 +129,7 @@ def run_linting():
 
 def format_code():
     """Format code with black and isort"""
-    print("🎨 Formatting code...")
+    print("Formatting code...")
     
     print("Running black...")
     black_result = run_command(["python", "-m", "black", "."])
@@ -142,7 +142,7 @@ def format_code():
 
 def run_docker_build():
     """Build all Docker images"""
-    print("🐳 Building Docker images...")
+    print("Building Docker images...")
     
     services = [
         "api_gateway",
@@ -167,7 +167,7 @@ def run_docker_build():
 
 def run_docker_up(profile: str = None):
     """Start services with Docker Compose"""
-    print("🐳 Starting services with Docker Compose...")
+    print("Starting services with Docker Compose...")
     
     cmd = ["docker-compose", "up", "-d"]
     
@@ -179,13 +179,13 @@ def run_docker_up(profile: str = None):
 
 def run_docker_down():
     """Stop services with Docker Compose"""
-    print("🐳 Stopping Docker Compose services...")
+    print("Stopping Docker Compose services...")
     return run_command(["docker-compose", "down"])
 
 
 def run_sdk_example():
     """Run SDK examples"""
-    print("📱 Running SDK examples...")
+    print("Running SDK examples...")
     return run_command(["python", "client_sdk/examples.py"])
 
 
@@ -226,7 +226,6 @@ def main():
     # Handle async commands
     async_commands = {
         "event-processor": run_event_processor,
-        "query-service": run_query_service,
         "aggregation-service": run_aggregation_service,
     }
     
@@ -244,6 +243,7 @@ def main():
     # Handle sync commands
     sync_commands = {
         "api-gateway": run_api_gateway,
+        "query-service": run_query_service,
         "migrate": run_migrations,
         "test": run_tests,
         "lint": run_linting,
