@@ -28,11 +28,9 @@ class DatabaseManager:
             self._engine = create_async_engine(
                 settings.database.database_url,
                 echo=settings.logging.level == "DEBUG",
-                pool_size=20,
-                max_overflow=30,
                 pool_pre_ping=True,
                 pool_recycle=3600,  # 1 hour
-                # Use NullPool for high-concurrency scenarios
+                # Use NullPool for high-concurrency scenarios (no pool_size/max_overflow needed)
                 poolclass=NullPool,
                 # Connection arguments for PostgreSQL
                 connect_args={
