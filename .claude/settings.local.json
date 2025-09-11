@@ -10,7 +10,9 @@
       "Bash(git commit:*)",
       "Bash(docker-compose:*)",
       "Bash(git push:*)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Bash(curl:*)",
+      "Bash(docker exec:*)"
     ],
     "deny": [],
     "ask": []

@@ -11,6 +11,7 @@ from config import settings
 from shared.database import get_session, UsageEventRepository, UsageAggregateRepository
 from shared.models.enums import ServiceType, AggregationPeriod
 from shared.utils import setup_logging, get_logger
+from shared.utils.metrics import metrics_endpoint
 from .schemas import (
     UsageQueryResponse,
     AggregateQueryResponse,
@@ -61,6 +62,12 @@ async def shutdown_event():
     """Cleanup connections on shutdown"""
     if redis_client:
         await redis_client.close()
+
+
+@app.get("/metrics")
+async def get_metrics():
+    """Prometheus metrics endpoint"""
+    return metrics_endpoint()
 
 
 @app.get("/health")

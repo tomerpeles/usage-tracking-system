@@ -22,8 +22,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.window_size = 60  # 1 minute window
         
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # Skip rate limiting for health checks
-        if request.url.path == "/health":
+        # Skip rate limiting for health checks and metrics
+        if request.url.path in ["/health", "/metrics"]:
             return await call_next(request)
             
         # Skip if Redis is not available
@@ -113,7 +113,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
     
     def __init__(self, app):
         super().__init__(app)
-        self.public_paths = {"/health", "/docs", "/redoc", "/openapi.json"}
+        self.public_paths = {"/health", "/metrics", "/docs", "/redoc", "/openapi.json"}
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Skip auth for public paths

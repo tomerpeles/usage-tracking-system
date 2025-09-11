@@ -13,6 +13,7 @@ import structlog
 from config import settings
 from shared.database import get_session, UsageEventRepository
 from shared.utils import setup_logging, get_logger, validate_event_data
+from shared.utils.metrics import metrics_endpoint, record_event_processing, record_batch_processing
 from shared.models.enums import ServiceType
 from .middleware import RateLimitMiddleware, AuthMiddleware
 from .schemas import (
@@ -73,6 +74,12 @@ async def shutdown_event():
         await redis_client.close()
 
 
+@app.get("/metrics")
+async def get_metrics():
+    """Prometheus metrics endpoint"""
+    return metrics_endpoint()
+
+
 @app.get("/health", response_model=HealthResponse)
 async def health_check() -> HealthResponse:
     """Health check endpoint"""
@@ -128,6 +135,13 @@ async def create_event(
         if redis_client:
             event_json = _serialize_event(validated_event)
             await redis_client.lpush("usage_events", event_json)
+            
+            # Record metrics
+            record_event_processing(
+                tenant_id=validated_event["tenant_id"],
+                service_type=validated_event["service_type"],
+                event_type=validated_event["event_type"]
+            )
             
             logger.info(
                 "Event queued for processing",
@@ -194,10 +208,23 @@ async def create_events_batch(
     if validated_events:
         if redis_client:
             pipe = redis_client.pipeline()
+            tenant_id = validated_events[0]["tenant_id"] if validated_events else "unknown"
+            
             for event in validated_events:
                 event_json = _serialize_event(event)
                 pipe.lpush("usage_events", event_json)
+                
+                # Record metrics for each event
+                record_event_processing(
+                    tenant_id=event["tenant_id"],
+                    service_type=event["service_type"],
+                    event_type=event["event_type"]
+                )
+            
             await pipe.execute()
+            
+            # Record batch processing metrics
+            record_batch_processing(tenant_id, len(validated_events))
             
             logger.info(
                 "Batch events queued for processing",
