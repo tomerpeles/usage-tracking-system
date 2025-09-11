@@ -2,7 +2,7 @@
 
 import pytest
 import httpx
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch, ANY
 
 from client_sdk import UsageTracker
 from client_sdk.exceptions import (
@@ -263,7 +263,7 @@ class TestUsageTracker:
             # Should have triggered batch send due to batch_size=2
             mock_client.post.assert_called_once_with(
                 "/api/v1/events/batch",
-                json={"events": pytest.any}
+                json={"events": ANY}
             )
     
     @pytest.mark.asyncio
@@ -282,6 +282,7 @@ class TestUsageTracker:
         async with UsageTracker(
             api_key="invalid-key",
             base_url="http://localhost:8000",
+            tenant_id="test-tenant",
             enable_batching=False
         ) as tracker:
             tracker._client = mock_client
@@ -311,6 +312,7 @@ class TestUsageTracker:
         async with UsageTracker(
             api_key="test-key",
             base_url="http://localhost:8000",
+            tenant_id="test-tenant",
             enable_batching=False
         ) as tracker:
             tracker._client = mock_client
