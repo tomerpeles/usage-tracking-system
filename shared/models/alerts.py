@@ -2,11 +2,12 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 from sqlalchemy import Boolean, DECIMAL, Integer, String, TIMESTAMP, Text, Index
-from sqlalchemy.dialects.postgresql import JSONB
+# from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base, TenantMixin
 from .enums import AlertType, AlertStatus
+from .types import JSONType
 
 
 class AlertConfiguration(Base, TenantMixin):
@@ -94,14 +95,14 @@ class AlertConfiguration(Base, TenantMixin):
     
     # Notification settings
     notification_channels: Mapped[list[str]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=list,
         comment="List of notification channels (email, webhook, etc.)"
     )
     
     notification_settings: Mapped[Dict[str, Any]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=dict,
         comment="Channel-specific notification settings"
@@ -126,7 +127,7 @@ class AlertConfiguration(Base, TenantMixin):
     
     metadata_: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         "metadata",
-        JSONB,
+        JSONType,
         nullable=True,
         comment="Additional alert metadata"
     )
@@ -229,14 +230,14 @@ class AlertInstance(Base, TenantMixin):
     
     # Additional context
     context_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=True,
         comment="Additional context about the alert"
     )
     
     # Notification tracking
     notifications_sent: Mapped[list[str]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=list,
         comment="List of notification channels that were notified"

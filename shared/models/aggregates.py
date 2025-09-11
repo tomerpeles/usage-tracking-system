@@ -2,11 +2,12 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 from sqlalchemy import DECIMAL, Integer, String, TIMESTAMP, Index, UniqueConstraint
-from sqlalchemy.dialects.postgresql import JSONB
+# from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base, TenantMixin
 from .enums import ServiceType, AggregationPeriod
+from .types import JSONType
 
 
 class UsageAggregate(Base, TenantMixin):
@@ -81,7 +82,7 @@ class UsageAggregate(Base, TenantMixin):
     
     # Service-specific metrics (stored as JSONB for flexibility)
     aggregated_metrics: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=True,
         default=dict,
         comment="Service-specific aggregated metrics"
@@ -163,14 +164,14 @@ class BillingSummary(Base, TenantMixin):
     )
     
     cost_by_service: Mapped[Dict[str, Any]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=dict,
         comment="Cost breakdown by service type"
     )
     
     cost_by_user: Mapped[Dict[str, Any]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=dict,
         comment="Cost breakdown by user"

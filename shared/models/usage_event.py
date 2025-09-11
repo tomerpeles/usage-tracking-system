@@ -3,11 +3,11 @@ from typing import Any, Dict, Optional
 import uuid
 
 from sqlalchemy import DECIMAL, Integer, String, TIMESTAMP, Index
-from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base, TenantMixin, MetadataMixin
 from .enums import ServiceType, EventStatus
+from .types import UUIDType, JSONType
 
 
 class UsageEvent(Base, TenantMixin, MetadataMixin):
@@ -17,7 +17,7 @@ class UsageEvent(Base, TenantMixin, MetadataMixin):
     
     # Core event fields
     event_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UUIDType,
         unique=True,
         nullable=False,
         index=True,
@@ -62,7 +62,7 @@ class UsageEvent(Base, TenantMixin, MetadataMixin):
     
     # Quantifiable measurements
     metrics: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=True,
         default=dict,
         comment="Quantifiable measurements (tokens, pages, etc.)"
@@ -70,7 +70,7 @@ class UsageEvent(Base, TenantMixin, MetadataMixin):
     
     # Billing information
     billing_info: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=True,
         default=dict,
         comment="Billing calculations and cost information"

@@ -67,10 +67,12 @@ async def test_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
 @pytest.fixture
 def sample_llm_event():
     """Sample LLM event data for testing"""
+    from shared.models.enums import ServiceType
+    
     return {
         "tenant_id": "test-tenant",
         "user_id": "test-user",
-        "service_type": "llm_service",
+        "service_type": ServiceType.LLM_SERVICE,
         "service_provider": "openai",
         "event_type": "completion",
         "metadata_": {

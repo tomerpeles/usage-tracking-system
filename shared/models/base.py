@@ -3,9 +3,10 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 
 from sqlalchemy import TIMESTAMP, String, Text, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from .types import UUIDType, JSONType
 
 
 class Base(DeclarativeBase):
@@ -16,7 +17,7 @@ class Base(DeclarativeBase):
         return cls.__name__.lower() + "s"
     
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        UUIDType,
         primary_key=True,
         default=uuid.uuid4,
         index=True
@@ -70,13 +71,13 @@ class MetadataMixin:
     
     metadata_: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         "metadata",
-        JSONB,
+        JSONType,
         nullable=True,
         default=dict
     )
     
     tags: Mapped[Optional[list[str]]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=True,
         default=list
     )

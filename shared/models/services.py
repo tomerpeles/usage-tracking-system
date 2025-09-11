@@ -2,11 +2,12 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy import Boolean, String, Text, Index, UniqueConstraint, TIMESTAMP
-from sqlalchemy.dialects.postgresql import JSONB
+# from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
 from .enums import ServiceType, BillingUnit
+from .types import JSONType
 
 
 class ServiceRegistry(Base):
@@ -36,21 +37,21 @@ class ServiceRegistry(Base):
     
     # Configuration
     providers: Mapped[List[str]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=list,
         comment="List of supported providers"
     )
     
     required_fields: Mapped[List[str]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=list,
         comment="Required fields in event metadata"
     )
     
     optional_fields: Mapped[List[str]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=list,
         comment="Optional fields in event metadata"
@@ -58,7 +59,7 @@ class ServiceRegistry(Base):
     
     # Billing configuration
     billing_config: Mapped[Dict[str, Any]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=dict,
         comment="Billing configuration"
@@ -66,7 +67,7 @@ class ServiceRegistry(Base):
     
     # Aggregation rules
     aggregation_rules: Mapped[Dict[str, Any]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=dict,
         comment="Rules for aggregating metrics"
@@ -74,7 +75,7 @@ class ServiceRegistry(Base):
     
     # Validation schema
     validation_schema: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=True,
         comment="JSON schema for validating events"
     )
@@ -142,7 +143,7 @@ class BillingRule(Base):
     
     # Advanced pricing
     tiered_rates: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=True,
         comment="Tiered pricing structure"
     )
@@ -224,7 +225,7 @@ class Tenant(Base):
     
     # Configuration
     settings: Mapped[Dict[str, Any]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=dict,
         comment="Tenant-specific settings"
@@ -232,13 +233,13 @@ class Tenant(Base):
     
     # Limits and quotas
     rate_limits: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=True,
         comment="Rate limits for this tenant"
     )
     
     usage_quotas: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=True,
         comment="Usage quotas and limits"
     )
@@ -251,7 +252,7 @@ class Tenant(Base):
     )
     
     billing_settings: Mapped[Optional[Dict[str, Any]]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=True,
         comment="Billing configuration"
     )
