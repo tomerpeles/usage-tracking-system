@@ -47,10 +47,10 @@ class UsageEventRepository(BaseRepository):
         return events
     
     async def upsert_event(self, event_data: Dict[str, Any]) -> UsageEvent:
-        """Upsert event (insert or update based on event_id)"""
+        """Upsert event (insert or update based on event_id and timestamp)"""
         stmt = insert(UsageEvent).values(**event_data)
         stmt = stmt.on_conflict_do_update(
-            index_elements=["event_id"],
+            index_elements=["event_id", "timestamp"],
             set_={
                 "status": stmt.excluded.status,
                 "billing_info": stmt.excluded.billing_info,
