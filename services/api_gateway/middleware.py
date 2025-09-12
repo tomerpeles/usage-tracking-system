@@ -7,6 +7,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import structlog
 
 from config import settings
+from shared.utils.metrics import api_requests_total, api_request_duration_seconds
 from .schemas import RateLimitResponse, ErrorResponse
 
 logger = structlog.get_logger("middleware")
@@ -260,5 +261,43 @@ class CORSMiddleware(BaseHTTPMiddleware):
             response.headers["Access-Control-Allow-Credentials"] = "true"
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
             response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-API-Key, X-Tenant-ID"
+        
+        return response
+
+
+class MetricsMiddleware(BaseHTTPMiddleware):
+    """Middleware to automatically track API request metrics"""
+    
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        # Record start time
+        start_time = time.time()
+        
+        # Process the request
+        response = await call_next(request)
+        
+        # Calculate duration
+        duration = time.time() - start_time
+        
+        # Extract tenant ID from request if available
+        tenant_id = getattr(request.state, "tenant_id", "unknown")
+        
+        # Get endpoint path (remove query parameters for grouping)
+        endpoint = request.url.path
+        method = request.method
+        status_code = str(response.status_code)
+        
+        # Record metrics
+        api_requests_total.labels(
+            method=method,
+            endpoint=endpoint,
+            status_code=status_code,
+            tenant_id=tenant_id
+        ).inc()
+        
+        api_request_duration_seconds.labels(
+            method=method,
+            endpoint=endpoint,
+            tenant_id=tenant_id
+        ).observe(duration)
         
         return response

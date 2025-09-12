@@ -13,9 +13,9 @@ import structlog
 from config import settings
 from shared.database import get_session, UsageEventRepository
 from shared.utils import setup_logging, get_logger, validate_event_data
-from shared.utils.metrics import metrics_endpoint, record_event_processing, record_batch_processing
+from shared.utils.metrics import metrics_endpoint, record_event_processing, record_batch_processing, api_requests_total, api_request_duration_seconds
 from shared.models.enums import ServiceType
-from .middleware import RateLimitMiddleware, AuthMiddleware
+from .middleware import RateLimitMiddleware, AuthMiddleware, MetricsMiddleware
 from .schemas import (
     EventResponse,
     BatchEventResponse, 
@@ -47,6 +47,7 @@ app.add_middleware(
 )
 
 # Add custom middleware
+app.add_middleware(MetricsMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(AuthMiddleware)
 
@@ -78,6 +79,7 @@ async def shutdown_event():
 async def get_metrics():
     """Prometheus metrics endpoint"""
     return metrics_endpoint()
+
 
 
 @app.get("/health", response_model=HealthResponse)
