@@ -93,7 +93,7 @@ services:
     networks:
       - usage_network
     healthcheck:
-      test: ["CMD", "ps", "aux"]
+      test: ["CMD", "sh", "-c", "pidof python"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -153,7 +153,7 @@ services:
     networks:
       - usage_network
     healthcheck:
-      test: ["CMD", "ps", "aux"]
+      test: ["CMD", "sh", "-c", "pidof python"]
       interval: 30s
       timeout: 10s
       retries: 3
