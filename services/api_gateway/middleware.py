@@ -152,12 +152,19 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def _validate_api_key(self, api_key: str, request: Request) -> bool:
         """Validate API key and extract tenant information"""
         
-        # For development, accept a simple test key
-        if api_key == "test-api-key":
+        # For development, accept test keys
+        test_keys = {
+            "test-api-key": "test-tenant",
+            "demo-key": "demo-tenant",
+            "admin-key": "admin-tenant"
+        }
+        
+        if api_key in test_keys:
+            tenant_id = test_keys[api_key]
             # Add tenant info to request state for downstream use
-            request.state.tenant_id = "test-tenant"
+            request.state.tenant_id = tenant_id
             request.state.api_key_info = {
-                "tenant_id": "test-tenant",
+                "tenant_id": tenant_id,
                 "permissions": ["read", "write"],
                 "rate_limit": settings.rate_limit.per_minute
             }
