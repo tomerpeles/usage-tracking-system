@@ -202,8 +202,8 @@ class EventProcessor:
     async def _enrich_event(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """Enrich event with additional metadata and calculated fields"""
         
-        # Add processing metadata
-        event['processed_at'] = datetime.utcnow()
+        # Update the updated_at timestamp to indicate processing
+        event['updated_at'] = datetime.utcnow()
         
         # Get service configuration for additional enrichment
         service_type = event.get('service_type')

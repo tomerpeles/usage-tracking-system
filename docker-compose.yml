@@ -92,6 +92,11 @@ services:
         condition: service_healthy
     networks:
       - usage_network
+    healthcheck:
+      test: ["CMD", "ps", "aux"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
     deploy:
       resources:
@@ -147,6 +152,11 @@ services:
         condition: service_healthy
     networks:
       - usage_network
+    healthcheck:
+      test: ["CMD", "ps", "aux"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     restart: unless-stopped
     deploy:
       resources:
