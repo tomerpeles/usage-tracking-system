@@ -8,10 +8,11 @@ from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from sqlalchemy import text
 import structlog
 
 from config import settings
-from shared.database import get_session, UsageEventRepository
+from shared.database import get_session, UsageEventRepository, health_check as db_health_check
 from shared.utils import setup_logging, get_logger, validate_event_data
 from shared.utils.metrics import metrics_endpoint, record_event_processing, record_batch_processing, api_requests_total, api_request_duration_seconds
 from shared.models.enums import ServiceType
@@ -96,13 +97,7 @@ async def health_check() -> HealthResponse:
             pass
     
     # Check database connection
-    db_healthy = False
-    try:
-        async with get_session() as session:
-            await session.execute("SELECT 1")
-            db_healthy = True
-    except Exception:
-        pass
+    db_healthy = await db_health_check()
     
     overall_healthy = redis_healthy and db_healthy
     

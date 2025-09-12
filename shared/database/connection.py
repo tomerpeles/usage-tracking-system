@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine
 )
 from sqlalchemy.pool import NullPool
+from sqlalchemy import text
 
 from config import settings
 
@@ -148,7 +149,7 @@ async def health_check() -> bool:
     """Check database connectivity"""
     try:
         async with db_manager.get_session() as session:
-            await session.execute("SELECT 1")
+            await session.execute(text("SELECT 1"))
         return True
     except Exception as e:
         logger.error(f"Database health check failed: {e}")
