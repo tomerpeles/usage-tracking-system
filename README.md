@@ -366,6 +366,26 @@ Interactive API documentation is available at:
 - Review query patterns
 - Enable query result caching
 
+### Debugging Database Issues
+
+**Empty usage_events table**
+- Check event processor logs for constraint errors
+- Verify database migrations completed successfully
+- Ensure Redis queue is being processed
+
+```bash
+# Check if events are queued in Redis
+docker exec usage_redis redis-cli LLEN usage_events
+
+# Check database event count
+docker exec usage_postgres psql -U usage_user -d usage_tracking -c "SELECT COUNT(*) FROM usage_events;"
+```
+
+**Database Constraint Errors**
+- Look for "ON CONFLICT" or constraint specification errors
+- Verify table constraints match repository upsert methods
+- Check unique constraints: `docker exec usage_postgres psql -U usage_user -d usage_tracking -c "\d+ usage_events"`
+
 ### Logs
 
 ```bash
@@ -373,7 +393,31 @@ Interactive API documentation is available at:
 docker-compose logs api_gateway
 docker-compose logs event_processor
 docker-compose logs -f --tail=100 query_service
+
+# Check specific service logs with timestamps
+docker logs usage_event_processor --timestamps --tail 50
+docker logs usage_api_gateway --timestamps --tail 50
+docker logs usage_postgres --tail 50
+
+# Follow logs in real-time
+docker logs -f usage_event_processor
+
+# Check all services at once
+docker-compose logs --tail=20
+
+# Monitor multiple services
+docker-compose logs -f event_processor api_gateway
+
+# View logs for specific error patterns
+docker logs usage_event_processor 2>&1 | grep -i error
+docker logs usage_event_processor 2>&1 | grep -i "constraint\|conflict"
 ```
+
+**Log Analysis Tips**
+- Event processor logs show database insertion issues
+- API Gateway logs show request validation problems  
+- Database logs show connection and constraint issues
+- Redis connection errors appear in multiple service logs
 
 ## 📄 License
 
