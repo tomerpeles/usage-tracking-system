@@ -12,7 +12,8 @@
       "Bash(git push:*)",
       "Bash(pytest:*)",
       "Bash(curl:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(docker logs:*)"
     ],
     "deny": [],
     "ask": []
