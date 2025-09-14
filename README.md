@@ -245,16 +245,51 @@ docker-compose --profile monitoring up -d
 ```
 
 Access:
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000 (admin/admin)
+- Prometheus: http://localhost:9090 - Metrics collection and monitoring
+- Grafana: http://localhost:3000 (admin/admin) - Dashboards and visualization
+- Loki: http://localhost:3100 - Log aggregation and storage
+
+### Logging with Loki & Grafana
+
+The system includes comprehensive logging integration:
+
+- **Real-time Log Collection**: Promtail automatically collects logs from all Docker containers
+- **Centralized Storage**: Loki stores and indexes logs for fast searching
+- **Grafana Integration**: View logs directly in Grafana alongside metrics
+
+**Accessing Logs:**
+
+1. Open Grafana at http://localhost:3000 (admin/admin)
+2. Navigate to **Explore** → Select **Loki** datasource
+3. Use queries to filter logs:
+   ```logql
+   # API Gateway logs only
+   {service="api_gateway"}
+   
+   # Multiple services
+   {service=~"api_gateway|query_service|event_processor"}
+   
+   # Error logs across all services
+   {service=~".*"} |~ "ERROR|error|Error"
+   
+   # Specific time range with filters
+   {service="api_gateway"} |= "POST" |~ "/api/v1/"
+   ```
+
+**Log Features:**
+- Service-based filtering and labeling
+- Real-time log streaming
+- Full-text search capabilities
+- Time-based queries and filtering
+- Integration with existing metric dashboards
 
 ### Custom Dashboards
 
 The system includes pre-built Grafana dashboards for:
-- Service performance metrics
-- Usage patterns and trends  
-- Billing and cost tracking
-- System health monitoring
+- **Metrics**: Service performance and usage patterns
+- **Logs**: Centralized log viewing with service filtering
+- **Analytics**: Billing and cost tracking
+- **Health**: System monitoring and alerting
 
 ## 🧪 Testing
 
@@ -386,7 +421,36 @@ docker exec usage_postgres psql -U usage_user -d usage_tracking -c "SELECT COUNT
 - Verify table constraints match repository upsert methods
 - Check unique constraints: `docker exec usage_postgres psql -U usage_user -d usage_tracking -c "\d+ usage_events"`
 
-### Logs
+### Debugging Logging Issues
+
+**Loki Not Receiving Logs**
+- Check if Promtail container is running: `docker ps | grep promtail`
+- Verify Promtail configuration: `docker logs usage_promtail`
+- Test Loki connectivity: `curl http://localhost:3100/ready`
+
+**Missing Logs in Grafana**
+- Ensure Loki datasource is configured in Grafana
+- Check Loki service discovery: `curl -s http://localhost:3100/loki/api/v1/labels`
+- Verify log queries in Grafana Explore → Loki
+
+**Log Collection Issues**
+```bash
+# Check Promtail status and targets
+docker logs usage_promtail --tail 50
+
+# Test if Loki is receiving data
+curl -s http://localhost:3100/loki/api/v1/labels
+
+# Query specific service logs
+curl -G "http://localhost:3100/loki/api/v1/query_range" \
+  --data-urlencode 'query={service="api_gateway"}' \
+  --data-urlencode 'limit=10'
+
+# Check log collection from containers
+docker exec usage_promtail cat /var/lib/docker/containers/*/*.log | head -5
+```
+
+### Service Logs
 
 ```bash
 # View service logs
