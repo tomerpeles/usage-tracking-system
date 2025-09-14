@@ -4,6 +4,54 @@
 
 This Docker Compose configuration orchestrates a comprehensive usage tracking system with microservices architecture, monitoring, and logging capabilities. The system includes core services, databases, load balancing, and optional monitoring stack.
 
+## Key Functionality
+
+### Microservices Architecture
+- **API Gateway (Port 8000)**: Main HTTP entry point for client requests
+- **Event Processor**: Asynchronous background processing of usage events
+- **Query Service (Port 8002)**: Dedicated read operations and data retrieval
+- **Aggregation Service**: Real-time data aggregation and analytics processing
+- **Database Migration Service**: Automated schema management with Alembic
+
+### Data Storage & Caching
+- **TimescaleDB Integration**: PostgreSQL with time-series extensions for efficient usage data storage
+- **Redis Caching**: High-performance caching layer with LRU eviction policy
+- **Persistent Volumes**: Data persistence across container restarts
+
+### Load Balancing & High Availability
+- **Nginx Load Balancer**: Production-grade reverse proxy and load distribution
+- **Health Checks**: Comprehensive service monitoring and automatic failure detection
+- **Service Dependencies**: Orchestrated startup sequence ensuring system stability
+
+### Monitoring & Observability
+- **Prometheus Metrics**: System and application metrics collection
+- **Grafana Dashboards**: Real-time visualization and alerting
+- **Loki Log Aggregation**: Centralized logging with structured log storage
+- **Promtail Collection**: Automatic log collection from all Docker containers
+
+## Notable Features
+
+### Deployment Flexibility
+- **Profile-Based Deployment**: Separate profiles for development, production, and monitoring
+- **Resource Management**: CPU and memory limits (512MB RAM, 0.5 CPU per service)
+- **Horizontal Scaling**: Support for scaling individual services (e.g., multiple API gateways)
+
+### Security & Network Isolation
+- **Custom Bridge Network**: Isolated network (172.20.0.0/16) for inter-service communication
+- **Internal Services**: Event processor and aggregation service not exposed to external network
+- **Health Check Integration**: Proactive service monitoring and automatic restart capabilities
+
+### Configuration Management
+- **Environment Variable Configuration**: Centralized configuration via environment variables
+- **External Configuration Files**: Support for custom configurations (nginx.conf, prometheus.yml, etc.)
+- **Database Initialization**: Automated TimescaleDB setup with custom SQL scripts
+
+### Development & Operations Support
+- **Hot Reloading**: Development-friendly container configuration
+- **Log Management**: Structured logging with configurable log levels
+- **Backup & Recovery**: Volume-based data persistence and backup strategies
+- **Rolling Updates**: Support for zero-downtime deployments
+
 ## Architecture
 
 The system follows a microservices pattern with the following components:
